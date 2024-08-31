@@ -1,12 +1,24 @@
+using System.Text.Json.Serialization;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
 
-builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddCors();
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+    await next.Invoke();
+});
 
 app.UseAuthorization();
 
