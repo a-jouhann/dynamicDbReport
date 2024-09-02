@@ -47,7 +47,8 @@ internal class CustomAuthentication(ILocalStorageService _localStorage) : Authen
         [
             new Claim(ClaimTypes.Uri, user.ServerAddress),
             new Claim(ClaimTypes.Name, user.Username),            
-            new Claim(ClaimTypes.Hash, user.Password)
+            new Claim(ClaimTypes.Hash, user.Password),
+            new Claim(ClaimTypes.Name, user.Engine.ToString())
         ];
 
         return new ClaimsIdentity(ClaimList, "apiauth_type");

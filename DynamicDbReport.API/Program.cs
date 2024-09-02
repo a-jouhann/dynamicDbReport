@@ -1,3 +1,5 @@
+using DynamicDbReport.API.PrivateServices;
+using DynamicDbReport.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,10 +11,16 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddCors();
+builder.Services.AddSingleton<DBService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: "AllowedCORS", policy => { policy.SetIsOriginAllowed(CORSAuthorization.IsOriginAllowed).AllowAnyHeader().AllowAnyMethod().AllowCredentials(); });
+});
 
 var app = builder.Build();
+
+app.UseCors("AllowedCORS");
 
 app.Use(async (context, next) =>
 {

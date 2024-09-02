@@ -1,6 +1,9 @@
 ﻿namespace DynamicDbReport.UI.PrivateServices;
 
-public static class Tools
+public class Tools
 {
+
+
+
 
 }

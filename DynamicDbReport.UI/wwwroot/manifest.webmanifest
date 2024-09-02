@@ -1,6 +1,6 @@
 {
-  "name": "DynamicDbReport.UI",
-  "short_name": "DynamicDbReport.UI",
+  "name": "Dynamic DB Report",
+  "short_name": "Dynamic DB Report",
   "id": "./",
   "start_url": "./",
   "display": "standalone",

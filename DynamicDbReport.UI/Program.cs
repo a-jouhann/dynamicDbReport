@@ -16,5 +16,6 @@ builder.Services.AddFluentUIComponents();
 builder.Services.AddScoped<CustomAuthentication>();
 builder.Services.AddScoped<AuthenticationStateProvider>(s => s.GetRequiredService<CustomAuthentication>());
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.Configuration["APIAddress"]) });
+builder.Services.AddScoped<HttpClientHelper>();
 
 await builder.Build().RunAsync();

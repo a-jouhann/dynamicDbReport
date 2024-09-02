@@ -1,7 +1,41 @@
 ﻿@page "/Auth/Login"
 
-<h3>Login</h3>
+<EditForm Model="@_loginModel" OnValidSubmit="@CheckCredential" FormName="LoginForm">
+    <DataAnnotationsValidator />
 
-@code {
+    <h3 class="text-center">Enter data to ues app</h3>
+    <FluentGrid Spacing="1" AdaptiveRendering="true" Justify="JustifyContent.Center">
+        <FluentGridItem xs="12" sm="12" xl="12">
+            <div class="card">
+                <FluentSelect Appearance="Appearance.Stealth" Items="@enginesList" TOption="EngineName" Required="true" @onchange="((e)=> _loginModel.Engine = (EngineName)Enum.Parse(typeof(EngineName), e.Value.ToString()))"></FluentSelect>
+                <FluentValidationMessage For="@(() => _loginModel.Engine)" />
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="12" xl="12">
+            <div class="card">
+                <FluentTextField Name="Server Address" @bind-Value="_loginModel.ServerAddress" Label="Server Address" Id="ServerAddress" Required />
+                <FluentValidationMessage For="@(() => _loginModel.ServerAddress)" />
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="12" xl="12">
+            <div class="card">
+                <FluentTextField Name="Username" @bind-Value="_loginModel.Username" Label="Username" Id="Username" Required />
+                <FluentValidationMessage For="@(() => _loginModel.Username)" />
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="12" xl="12">
+            <div class="card">
+                <FluentTextField TextFieldType="TextFieldType.Password" Name="Password" @bind-Value="_loginModel.Password" Label="Password" Id="Password" Required />
+                <FluentValidationMessage For="@(() => _loginModel.Password)" />
+            </div>
+        </FluentGridItem>
+        <FluentGridItem xs="12" sm="12" xl="12">
+            <div class="card">
+                <FluentValidationSummary />
+                <FluentButton Type="ButtonType.Submit" IconStart="@(new Icons.Regular.Size20.LockClosed())" Appearance="@Microsoft.FluentUI.AspNetCore.Components.Appearance.Accent" Disabled="@_processing">@(_processing ? "_Processing..." : "Login")</FluentButton>
+            </div>
+        </FluentGridItem>
 
-}
+    </FluentGrid>
+
+</EditForm>
