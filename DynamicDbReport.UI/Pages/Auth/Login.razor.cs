@@ -10,10 +10,11 @@ namespace DynamicDbReport.UI.Pages.Auth;
 
 public partial class Login
 {
-    [Inject] private HttpClientHelper http { get; set; }  
-    [Inject] private IToastService toast { get; set; }  
+    [Inject] private HttpClientHelper http { get; set; }
+    [Inject] private IToastService toast { get; set; }
     [Inject] private NavigationManager navigate { get; set; }
     [Inject] private AuthenticationStateProvider _authenticationStateProvider { get; set; }
+    [Inject] private IMessageService messageService { get; set; }
 
     CredentialRequest _loginModel = new();
     bool _processing = false;
@@ -21,6 +22,7 @@ public partial class Login
 
     private async Task CheckCredential()
     {
+        _processing = true;
         var fetchData = await http.HttpClientReceiveAsync<CheckCredentialResponse>(HttpMethod.Post, "SQLFunctions/CheckDBConnection", _loginModel.ToJsonString());
         if (fetchData is null || !fetchData.SuccessAction || !fetchData.ResponseData)
         {
@@ -31,6 +33,7 @@ public partial class Login
         await ((CustomAuthentication)_authenticationStateProvider).MarkUserAsAuthenticated(_loginModel);
         _processing = false;
         toast.ShowSuccess("User access to use db");
+        messageService.Clear();
         navigate.NavigateTo("/");
     }
 

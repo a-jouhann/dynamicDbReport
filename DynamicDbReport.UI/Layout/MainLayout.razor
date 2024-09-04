@@ -1,21 +1,10 @@
 ﻿@inherits LayoutComponentBase
 
-<FluentDesignTheme StorageName="theme" Mode="themeMode" />
-
-
+<FluentDesignTheme StorageName="theme" Mode="DesignThemeModes.System" />
 <FluentLayout>
-    <FluentHeader>
-        <FluentNavLink Href="/">
 
-            <FluentPersona Name="Dynamic db report"
-                           Status="PresenceStatus.Unknown"
-                           StatusSize="PresenceBadgeSize.Tiny"
-                           Image="/icon-192.png"
-                           ImageSize="32px">
-            </FluentPersona>
+    <Header />
 
-        </FluentNavLink>
-    </FluentHeader>
     <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
 
         <AuthorizeView>
@@ -50,8 +39,3 @@
     <FluentMessageBarProvider />
 
 </FluentLayout>
-
-
-@code {
-    DesignThemeModes themeMode = DesignThemeModes.System;
-}

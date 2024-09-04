@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicDbReport.DTO", "Dyna
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicDbReport.Services", "DynamicDbReport.Services\DynamicDbReport.Services.csproj", "{5B57B316-5D81-465A-8B46-2D3D64593394}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DynamicDbReport.API", "DynamicDbReport.API\DynamicDbReport.API.csproj", "{14BBAE9B-B4D9-4502-BF0A-7BDC72C98F23}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DynamicDbReport.API", "DynamicDbReport.API\DynamicDbReport.API.csproj", "{14BBAE9B-B4D9-4502-BF0A-7BDC72C98F23}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -1,0 +1,66 @@
+﻿@implements IDisposable
+
+@using DynamicDbReport.DTO.Models.SQLModels
+@inject ILocalStorageService localStorage
+@inject IMessageService messageService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<FluentHeader Class="siteheader">
+    <FluentNavLink Href="/">
+        <FluentPersona Name="@(loginData.Engine == EngineName.None ? "Not connected" : $"{loginData.Engine.ToString()} - {loginData.ServerAddress}({loginData.Username})")"
+                       Status="@(loginData.Engine == EngineName.None? PresenceStatus.Unknown: PresenceStatus.Available)"
+                       StatusSize="PresenceBadgeSize.Tiny"
+                       Image="/icon-192.png"
+                       ImageSize="32px">
+        </FluentPersona>
+    </FluentNavLink>
+    <FluentSpacer />
+
+    <AuthorizeView>
+        <Authorized>
+            <FluentButton OnClick="ChangeConnection">Change connection</FluentButton>
+        </Authorized>
+    </AuthorizeView>
+
+</FluentHeader>
+
+
+@code {
+    CredentialRequest loginData = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        messageService.OnMessageItemsUpdated += UpdateData;
+        await CheckToUpdate();
+    }
+
+    private async Task CheckToUpdate()
+    {
+        if (await localStorage.ContainKeyAsync("dbMember"))
+        {
+            loginData = await localStorage.GetItemAsync<CredentialRequest>("dbMember");
+            StateHasChanged();
+        }
+    }
+
+    private async Task ChangeConnection()
+    {
+        loginData = new();
+        await ((PrivateServices.CustomAuthentication)_authenticationStateProvider).MarkUserAsLoggedOut();
+        _navigationManager.NavigateTo("/Auth/Login");
+    }
+
+    public void Dispose()
+    {
+        messageService.OnMessageItemsUpdated -= UpdateData;
+    }
+
+    private void UpdateData()
+    {
+        CheckToUpdate();
+        InvokeAsync(StateHasChanged);
+    }
+
+}
