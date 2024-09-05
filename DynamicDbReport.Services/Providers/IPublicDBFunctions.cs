@@ -6,7 +6,7 @@ interface IPublicDBFunctions
 {
 
     CheckCredentialResponse CheckDBConnection(CredentialRequest credential);
-
+    DatabaseNameListResponse DBNameList(CredentialRequest requestModel);
 
 
 

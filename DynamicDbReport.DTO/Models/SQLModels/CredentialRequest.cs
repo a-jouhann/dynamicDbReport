@@ -19,4 +19,6 @@ public class CredentialRequest
     [Required(AllowEmptyStrings = false, ErrorMessage = "{0} is required")]
     [MinLength(2, ErrorMessage = "{0} Min length is: 2")]
     public string Password { get; set; }
+
+    public string DbName { get; set; }
 }

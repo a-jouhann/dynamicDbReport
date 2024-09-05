@@ -25,6 +25,12 @@ public class SQLFunctionsController(DBService _db) : ControllerBase
     {
         return _db.CheckDBConnection(requestModel);
     }
+    
+    [HttpPost("DBNameList")]
+    public ActionResult<DatabaseNameListResponse> DBNameList(CredentialRequest requestModel)
+    {
+        return _db.DBNameList(requestModel);
+    }
 
 
 

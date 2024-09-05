@@ -18,6 +18,19 @@ public class DBService
             return new() { ErrorException = new() { ErrorMessage = $"{x.Message} - {x.InnerException?.Message}" } };
         }
     }
+    
+    public DatabaseNameListResponse DBNameList(CredentialRequest requestModel)
+    {
+        try
+        {
+            var instance = DBFactory.CreateInstance(requestModel.Engine);
+            return instance.DBNameList(requestModel);
+        }
+        catch (Exception x)
+        {
+            return new() { ErrorException = new() { ErrorMessage = $"{x.Message} - {x.InnerException?.Message}" } };
+        }
+    }
 
 
 

@@ -1,6 +1,8 @@
 ﻿@implements IDisposable
 
 @using DynamicDbReport.DTO.Models.SQLModels
+@using DynamicDbReport.DTO.Shared
+@using DynamicDbReport.UI.PrivateServices
 @inject ILocalStorageService localStorage
 @inject IMessageService messageService
 @inject AuthenticationStateProvider _authenticationStateProvider
@@ -20,7 +22,10 @@
 
     <AuthorizeView>
         <Authorized>
-            <FluentButton OnClick="ChangeConnection">Change connection</FluentButton>
+
+            <FluentSelect AriaLabel="Databases" SelectedOption="@loginData.DbName" Items="@dbNames" TOption="string" @onchange="((e)=> ChangeDB(e.Value.ToString()))" Style="width:30px;margin:0 5px;" />
+                
+            <FluentButton OnClick="ChangeConnection" Title="Change connection"><FluentIcon Value="@(new Icons.Regular.Size20.Connector())" Color="Color.Neutral" Title="Change connection" /></FluentButton>
         </Authorized>
     </AuthorizeView>
 
@@ -28,6 +33,11 @@
 
 
 @code {
+    [Inject] private HttpClientHelper http { get; set; }
+    [Inject] private IToastService toast { get; set; }
+
+    List<string> dbNames = [];
+    string currentDB = "";
     CredentialRequest loginData = new();
 
     protected override async Task OnInitializedAsync()
@@ -41,8 +51,28 @@
         if (await localStorage.ContainKeyAsync("dbMember"))
         {
             loginData = await localStorage.GetItemAsync<CredentialRequest>("dbMember");
-            StateHasChanged();
         }
+        await FetchDbList();
+
+        StateHasChanged();
+    }
+
+    private async Task FetchDbList()
+    {
+        var fetchData = await http.HttpClientReceiveAsync<DatabaseNameListResponse>(HttpMethod.Post, "SQLFunctions/DBNameList", loginData.ToJsonString());
+        if (fetchData?.ResponseData is null || !fetchData.SuccessAction || fetchData.ResponseData.Count == 0)
+        {
+            toast.ShowError(fetchData?.ErrorException?.ErrorMessage ?? "Cannot fetch dbs");
+            return;
+        }
+
+        dbNames = fetchData.ResponseData;
+    }
+
+    private async Task ChangeDB(string db)
+    {
+        loginData.DbName = db;
+        await localStorage.SetItemAsync("dbMember", loginData);
     }
 
     private async Task ChangeConnection()

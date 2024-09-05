@@ -247,3 +247,12 @@ code {
 }
 
 /* /Header */
+
+.full-width{
+    width: 100%;
+}
+
+.login-form{
+    max-width:400px;
+    margin: auto;
+}
