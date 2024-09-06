@@ -7,6 +7,9 @@
 @inject IMessageService messageService
 @inject AuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navigationManager
+@inject HttpClientHelper http
+@inject IToastService toast
+@inject IDialogService DialogService
 
 
 <FluentHeader Class="siteheader">
@@ -22,10 +25,9 @@
 
     <AuthorizeView>
         <Authorized>
-
-            <FluentSelect AriaLabel="Databases" SelectedOption="@loginData.DbName" Items="@dbNames" TOption="string" @onchange="((e)=> ChangeDB(e.Value.ToString()))" Style="width:30px;margin:0 5px;" />
-                
-            <FluentButton OnClick="ChangeConnection" Title="Change connection"><FluentIcon Value="@(new Icons.Regular.Size20.Connector())" Color="Color.Neutral" Title="Change connection" /></FluentButton>
+            <FluentMenuButton ButtonAppearance="@Appearance.Neutral" Text="@(loginData.DbName??"Select DB")" Items="@dbNames" OnMenuChanged="ChangeDB"></FluentMenuButton>
+            <FluentButton Style="margin-left: 5px" OnClick="ChangeConnection" Title="Change connection"><FluentIcon Value="@(new Icons.Regular.Size20.Connector())" Color="Color.Neutral" Title="Change connection" /></FluentButton>
+            <FluentButton Style="margin-left: 5px" OnClick="OpenSiteSettingsAsync" Title="Settings"><FluentIcon Value="@(new Icons.Regular.Size20.Settings())" Color="Color.Neutral" Title="Settings" /></FluentButton>
         </Authorized>
     </AuthorizeView>
 
@@ -33,12 +35,9 @@
 
 
 @code {
-    [Inject] private HttpClientHelper http { get; set; }
-    [Inject] private IToastService toast { get; set; }
-
-    List<string> dbNames = [];
-    string currentDB = "";
+    Dictionary<string, string> dbNames = [];
     CredentialRequest loginData = new();
+    private IDialogReference _dialog;
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,12 +65,13 @@
             return;
         }
 
-        dbNames = fetchData.ResponseData;
+        foreach (var j in fetchData.ResponseData)
+            dbNames.Add(j, j);
     }
 
-    private async Task ChangeDB(string db)
+    private async Task ChangeDB(MenuChangeEventArgs db)
     {
-        loginData.DbName = db;
+        loginData.DbName = db.Id;
         await localStorage.SetItemAsync("dbMember", loginData);
     }
 
@@ -91,6 +91,21 @@
     {
         CheckToUpdate();
         InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenSiteSettingsAsync()
+    {
+        _dialog = await DialogService.ShowPanelAsync<Settings>(new DialogParameters()
+            {
+                ShowTitle = true,
+                Title = "Site settings",
+                Alignment = HorizontalAlignment.Right,
+                PrimaryAction = "OK",
+                SecondaryAction = null,
+                ShowDismiss = true
+            });
+
+        DialogResult result = await _dialog.Result;
     }
 
 }

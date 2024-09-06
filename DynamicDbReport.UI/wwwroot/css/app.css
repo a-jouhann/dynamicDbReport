@@ -125,6 +125,11 @@ code {
 }
 
 @media (max-width: 600px) {
+
+    .fluent-persona .name{
+        display: none;
+    }
+
     .header-gutters {
         margin: 0.5rem 3rem 0.5rem 1.5rem !important;
     }
@@ -256,3 +261,4 @@ code {
     max-width:400px;
     margin: auto;
 }
+

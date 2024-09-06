@@ -4,3 +4,57 @@
 <PageTitle>@App.ApplicationTitle("Home")</PageTitle>
 
 
+<div style="width:100%">
+    <FluentToolbar style="width:100%">
+        <FluentButton Style="margin: 0 5px" Title="Open script"><FluentIcon Value="@(new Icons.Regular.Size20.OpenFolder())" Color="Color.Accent" Title="Open script" /></FluentButton>
+
+        <FluentButton Style="margin: 0 5px" Title="Save As.."><FluentIcon Value="@(new Icons.Regular.Size20.Save())" Color="Color.Accent" Title="Save As.." /></FluentButton>
+
+        <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
+
+        <FluentButton Appearance="Appearance.Accent" IconEnd="@(new Icons.Regular.Size20.Send())">Execute</FluentButton>
+        
+        <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
+
+        <FluentRadioGroup @bind-Value=showAsGrid TValue="bool">
+            <FluentRadio Value="true">Grid</FluentRadio>
+            <FluentRadio Value="false">Text</FluentRadio>
+        </FluentRadioGroup>
+    </FluentToolbar>
+</div>
+
+
+<FluentSplitter Orientation="@Orientation.Vertical" Collapsed="true" BarSize="6" Panel1MinSize="20%" Panel2MinSize="20%" Style="height:100%;width:100%;">
+    <Panel1>
+        <FluentTextArea Appearance="FluentInputAppearance.Filled" Rows="25" @bind-Value=script style="width: 100%;max-height:100%;min-height:100%;"></FluentTextArea>
+    </Panel1>
+    <Panel2>
+        <FluentTabs ShowActiveIndicator=false ActiveTabId="TabOne">
+            @if (hasResult)
+            {
+                <FluentTab Id="TabTwo" Label="Results">
+                </FluentTab>
+            }
+
+            <FluentTab Id="TabOne" Label="Messages">
+                @messages
+            </FluentTab>            
+        </FluentTabs>
+    </Panel2>
+</FluentSplitter>
+
+
+
+
+@code {
+    string script = "";
+    bool showAsGrid = true;
+    bool hasResult = false;
+    string messages = "";
+
+
+
+
+
+
+}
