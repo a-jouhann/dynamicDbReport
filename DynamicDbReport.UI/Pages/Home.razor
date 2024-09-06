@@ -1,5 +1,8 @@
 ﻿@page "/"
+@using DynamicDbReport.DTO.Models.SQLModels
 @attribute [Authorize]
+@inject IToastService toast
+@inject ILocalStorageService localStorage
 
 <PageTitle>@App.ApplicationTitle("Home")</PageTitle>
 
@@ -13,7 +16,8 @@
         <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
 
         <FluentButton Appearance="Appearance.Accent" IconEnd="@(new Icons.Regular.Size20.Send())">Execute</FluentButton>
-        
+        <FluentCheckbox @bind-Value="executeScript.NoCount" Label="No Count" />
+
         <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
 
         <FluentRadioGroup @bind-Value=showAsGrid TValue="bool">
@@ -26,7 +30,7 @@
 
 <FluentSplitter Orientation="@Orientation.Vertical" Collapsed="true" BarSize="6" Panel1MinSize="20%" Panel2MinSize="20%" Style="height:100%;width:100%;">
     <Panel1>
-        <FluentTextArea Appearance="FluentInputAppearance.Filled" Rows="25" @bind-Value=script style="width: 100%;max-height:100%;min-height:100%;"></FluentTextArea>
+        <FluentTextArea Appearance="FluentInputAppearance.Filled" Rows="25" @bind-Value=executeScript.QueryToExecute style="width: 100%;max-height:100%;min-height:100%;"></FluentTextArea>
     </Panel1>
     <Panel2>
         <FluentTabs ShowActiveIndicator=false ActiveTabId="TabOne">
@@ -38,7 +42,7 @@
 
             <FluentTab Id="TabOne" Label="Messages">
                 @messages
-            </FluentTab>            
+            </FluentTab>
         </FluentTabs>
     </Panel2>
 </FluentSplitter>
@@ -47,12 +51,38 @@
 
 
 @code {
-    string script = "";
     bool showAsGrid = true;
     bool hasResult = false;
     string messages = "";
+    private ExecuteScriptRequest executeScript;
+
+    protected override void OnInitialized() => executeScript = new();
+
+    private async Task ExecuteScripts()
+    {
+        if (string.IsNullOrEmpty(executeScript.QueryToExecute) || executeScript.QueryToExecute == "")
+        {
+            toast.ShowError("No query to execute");
+            return;
+        }
+
+        if (!await localStorage.ContainKeyAsync("dbMember"))
+        {
+            toast.ShowError("Login again");
+            return;
+        }
+        executeScript.Credential = await localStorage.GetItemAsync<CredentialRequest>("dbMember");
+
+        if (executeScript?.Credential is null || string.IsNullOrEmpty(executeScript.Credential.DbName) || executeScript.Credential.DbName == "")
+        {
+            toast.ShowError("Select DB first");
+            return;
+        }
 
 
+
+
+    }
 
 
 
