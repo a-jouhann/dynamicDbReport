@@ -1,5 +1,8 @@
 ﻿using DynamicDbReport.DTO.Models.SQLModels;
+using DynamicDbReport.Services.DBContext;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace DynamicDbReport.Services.Providers;
 
@@ -7,7 +10,7 @@ internal class DB_MSSQL : IPublicDBFunctions
 {
 
 
-    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress};User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
+    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress}{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == ""? "" : $"Database={requestModel.DbName};")};User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
 
     public CheckCredentialResponse CheckDBConnection(CredentialRequest credential)
     {
@@ -48,5 +51,46 @@ internal class DB_MSSQL : IPublicDBFunctions
         }
     }
 
+    private ExecuteScriptResponse ExecuteDynamicQuery(DatabaseContext db, string sqlQuery)
+    {
+        try
+        {
+            var connection = db.Database.GetDbConnection();
+            using var command = connection.CreateCommand();
+            command.CommandText = sqlQuery;
+            if (connection.State == ConnectionState.Closed)
+                connection.Open();
+
+            using var result = command.ExecuteReader();
+            var dataTable = new DataTable();
+            dataTable.Load(result);
+            ExecuteScriptResponse responseObject = new() { ColumnName = [], Rows = [] };
+
+            foreach (DataColumn column in dataTable.Columns)
+                responseObject.ColumnName.Add(column.ColumnName);
+
+            foreach (DataRow row in dataTable.Rows)
+            {
+                List<string> currentItems = [];
+                foreach (DataColumn column in dataTable.Columns)
+                    currentItems.Add(row[column].ToString());
+
+                responseObject.Rows.Add(currentItems);
+            }
+
+            //message
+            return responseObject;
+        }
+        catch (Exception x)
+        {
+            return new() { ResponesMessage = x.Message, ErrorException = new() { ErrorMessage = x.Message } };
+        }
+    }
+
+    public ExecuteScriptResponse ExecuteScript(ExecuteScriptRequest requestModel)
+    {
+        using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(requestModel.Credential), Engine = DTO.Models.Public.EngineName.MSSQL });
+        return ExecuteDynamicQuery(db, requestModel.QueryToExecute);
+    }
 
 }

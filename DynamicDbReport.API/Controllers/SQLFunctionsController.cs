@@ -31,6 +31,12 @@ public class SQLFunctionsController(DBService _db) : ControllerBase
     {
         return _db.DBNameList(requestModel);
     }
+    
+    [HttpPost("ExecuteScript")]
+    public ActionResult<ExecuteScriptResponse> ExecuteScript(ExecuteScriptRequest requestModel)
+    {
+        return _db.ExecuteScript(requestModel);
+    }
 
 
 

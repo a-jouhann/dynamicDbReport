@@ -41,7 +41,7 @@
             }
 
             <FluentTab Id="TabOne" Label="Messages">
-                @messages
+                @executeRespones.ResponesMessage
             </FluentTab>
         </FluentTabs>
     </Panel2>
@@ -53,10 +53,14 @@
 @code {
     bool showAsGrid = true;
     bool hasResult = false;
-    string messages = "";
     private ExecuteScriptRequest executeScript;
+    private ExecuteScriptResponse executeRespones;
 
-    protected override void OnInitialized() => executeScript = new();
+    protected override void OnInitialized()
+    {
+        executeScript = new();
+        executeRespones = new();
+    }
 
     private async Task ExecuteScripts()
     {

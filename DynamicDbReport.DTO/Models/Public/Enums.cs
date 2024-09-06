@@ -3,6 +3,6 @@
 
 public enum EngineName
 {
-    None,
+    None = 0,
     MSSQL
 }

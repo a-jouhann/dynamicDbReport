@@ -32,6 +32,20 @@ public class DBService
         }
     }
 
+    
+    public ExecuteScriptResponse ExecuteScript(ExecuteScriptRequest requestModel)
+    {
+        try
+        {
+            var instance = DBFactory.CreateInstance(requestModel.Credential.Engine);
+            return instance.ExecuteScript(requestModel);
+        }
+        catch (Exception x)
+        {
+            return new() { ErrorException = new() { ErrorMessage = $"{x.Message} - {x.InnerException?.Message}" } };
+        }
+    }
+
 
 
 
