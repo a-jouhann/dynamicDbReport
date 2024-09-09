@@ -25,7 +25,9 @@
 
     <AuthorizeView>
         <Authorized>
-            <FluentMenuButton ButtonAppearance="@Appearance.Neutral" Text="@(loginData.DbName??"Select DB")" Items="@dbNames" OnMenuChanged="ChangeDB"></FluentMenuButton>
+            @*  <FluentMenuButton ButtonAppearance="@Appearance.Neutral" Id="connectionSelector" Text="@(??"Select DB")" Items="@dbNames" OnMenuChanged="ChangeDB"></FluentMenuButton> *@
+            <FluentSelect TOption="string" Items="dbNames" Width="95px" OptionText="@(i => i)" OptionValue="@(i => i)" Multiple="false" SelectedOption="loginData.DbName" ValueChanged="ChangeDB" />
+
             <FluentButton Style="margin-left: 5px" OnClick="ChangeConnection" Title="Change connection"><FluentIcon Value="@(new Icons.Regular.Size20.Connector())" Color="Color.Neutral" Title="Change connection" /></FluentButton>
             <FluentButton Style="margin-left: 5px" OnClick="OpenSiteSettingsAsync" Title="Settings"><FluentIcon Value="@(new Icons.Regular.Size20.Settings())" Color="Color.Neutral" Title="Settings" /></FluentButton>
         </Authorized>
@@ -35,7 +37,7 @@
 
 
 @code {
-    Dictionary<string, string> dbNames = [];
+    List<string> dbNames = [];
     CredentialRequest loginData = new();
     private IDialogReference _dialog;
 
@@ -65,13 +67,12 @@
             return;
         }
 
-        foreach (var j in fetchData.ResponseData)
-            dbNames.Add(j, j);
+        dbNames = fetchData.ResponseData;
     }
 
-    private async Task ChangeDB(MenuChangeEventArgs db)
+    private async Task ChangeDB(string db)
     {
-        loginData.DbName = db.Id;
+        loginData.DbName = db;
         await localStorage.SetItemAsync("dbMember", loginData);
     }
 

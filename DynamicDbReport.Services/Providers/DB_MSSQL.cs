@@ -10,10 +10,11 @@ internal class DB_MSSQL : IPublicDBFunctions
 {
 
 
-    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress}{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == ""? "" : $"Database={requestModel.DbName};")};User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
+    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress};{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == "" ? "" : $"Database={requestModel.DbName};")}User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
 
     public CheckCredentialResponse CheckDBConnection(CredentialRequest credential)
     {
+        credential.DbName = string.Empty;
         string connectionString = CreateConnectionString(credential);
 
         try
@@ -27,10 +28,11 @@ internal class DB_MSSQL : IPublicDBFunctions
             return new() { ErrorException = new() { ErrorMessage = e.Message } };
         }
     }
-    
+
     public DatabaseNameListResponse DBNameList(CredentialRequest requestModel)
     {
-        string connectionString = CreateConnectionString(requestModel);        
+        requestModel.DbName = string.Empty;
+        string connectionString = CreateConnectionString(requestModel);
         try
         {
             using SqlConnection connection = new(connectionString);
@@ -64,10 +66,11 @@ internal class DB_MSSQL : IPublicDBFunctions
             using var result = command.ExecuteReader();
             var dataTable = new DataTable();
             dataTable.Load(result);
-            ExecuteScriptResponse responseObject = new() { ColumnName = [], Rows = [] };
+            ExecuteScriptResponse responseObject = new() { ResponseData = new() { Columns = [], Rows = [] }, SuccessAction = true };
 
             foreach (DataColumn column in dataTable.Columns)
-                responseObject.ColumnName.Add(column.ColumnName);
+                responseObject.ResponseData.Columns.Add(new() { ColumnName = column.ColumnName, ColumnType = column.DataType.Name, Length = column.MaxLength });
+
 
             foreach (DataRow row in dataTable.Rows)
             {
@@ -75,7 +78,7 @@ internal class DB_MSSQL : IPublicDBFunctions
                 foreach (DataColumn column in dataTable.Columns)
                     currentItems.Add(row[column].ToString());
 
-                responseObject.Rows.Add(currentItems);
+                responseObject.ResponseData.Rows.Add(currentItems);
             }
 
             //message
@@ -83,7 +86,7 @@ internal class DB_MSSQL : IPublicDBFunctions
         }
         catch (Exception x)
         {
-            return new() { ResponesMessage = x.Message, ErrorException = new() { ErrorMessage = x.Message } };
+            return new() { ResponseData = new() { ResponesMessage = x.Message }, ErrorException = new() { ErrorMessage = x.Message } };
         }
     }
 

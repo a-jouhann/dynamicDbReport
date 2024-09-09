@@ -1,5 +1,8 @@
 ﻿@page "/"
 @using DynamicDbReport.DTO.Models.SQLModels
+@using DynamicDbReport.DTO.Shared
+@using DynamicDbReport.UI.PrivateServices
+
 @attribute [Authorize]
 @inject IToastService toast
 @inject ILocalStorageService localStorage
@@ -15,7 +18,7 @@
 
         <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
 
-        <FluentButton Appearance="Appearance.Accent" IconEnd="@(new Icons.Regular.Size20.Send())">Execute</FluentButton>
+        <FluentButton Appearance="Appearance.Accent" IconEnd="@(new Icons.Regular.Size20.Send())" Disabled="_processing" OnClick="ExecuteScripts">@(_processing ? "Executing..." : "Execute")</FluentButton>
         <FluentCheckbox @bind-Value="executeScript.NoCount" Label="No Count" />
 
         <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
@@ -28,20 +31,37 @@
 </div>
 
 
-<FluentSplitter Orientation="@Orientation.Vertical" Collapsed="true" BarSize="6" Panel1MinSize="20%" Panel2MinSize="20%" Style="height:100%;width:100%;">
+<FluentSplitter Orientation="@Orientation.Vertical" BarSize="6" Panel1MinSize="20%" Panel2MinSize="20%" Style="height:100%;width:100%;">
     <Panel1>
         <FluentTextArea Appearance="FluentInputAppearance.Filled" Rows="25" @bind-Value=executeScript.QueryToExecute style="width: 100%;max-height:100%;min-height:100%;"></FluentTextArea>
     </Panel1>
     <Panel2>
-        <FluentTabs ShowActiveIndicator=false ActiveTabId="TabOne">
-            @if (hasResult)
-            {
-                <FluentTab Id="TabTwo" Label="Results">
-                </FluentTab>
-            }
+        <FluentTabs ShowActiveIndicator=false ActiveTabId="@selectedTab">
+
+            <FluentTab Id="TabTwo" Label="Results">
+                @if (hasResult)
+                {
+                    <FluentDataGrid Id="manualGrid" GenerateHeader=GenerateHeaderOption.None GridTemplateColumns="1fr 1fr" TGridItem="string" role="grid">
+                        <FluentDataGridRow RowType="DataGridRowType.Header">
+                            <FluentDataGridCell GridColumn=1 CellType="DataGridCellType.ColumnHeader">Column 1</FluentDataGridCell>
+                            <FluentDataGridCell GridColumn=2 CellType="DataGridCellType.ColumnHeader">Column 2</FluentDataGridCell>
+                        </FluentDataGridRow>
+                        <FluentDataGridRow>
+                            <FluentDataGridCell GridColumn=1>1.1</FluentDataGridCell>
+                            <FluentDataGridCell GridColumn=2>1.2</FluentDataGridCell>
+                        </FluentDataGridRow>
+                        <FluentDataGridRow>
+                            <FluentDataGridCell GridColumn=1>2.1</FluentDataGridCell>
+                            <FluentDataGridCell GridColumn=2> 2.2</FluentDataGridCell>
+                        </FluentDataGridRow>
+                    </FluentDataGrid>
+
+                }
+            </FluentTab>
+
 
             <FluentTab Id="TabOne" Label="Messages">
-                @executeRespones.ResponesMessage
+                @executeRespones.ResponseData.ResponesMessage
             </FluentTab>
         </FluentTabs>
     </Panel2>
@@ -51,15 +71,19 @@
 
 
 @code {
+
+    [Inject] private HttpClientHelper http { get; set; }
+
     bool showAsGrid = true;
     bool hasResult = false;
+    bool _processing = false;
+    string selectedTab = "TabOne";
     private ExecuteScriptRequest executeScript;
     private ExecuteScriptResponse executeRespones;
-
     protected override void OnInitialized()
     {
         executeScript = new();
-        executeRespones = new();
+        executeRespones = new() { ResponseData = new() { Columns = [], Rows = [] } };
     }
 
     private async Task ExecuteScripts()
@@ -83,9 +107,20 @@
             return;
         }
 
+        _processing = true;
+        executeRespones = await http.HttpClientReceiveAsync<ExecuteScriptResponse>(HttpMethod.Post, "SQLFunctions/ExecuteScript", executeScript.ToJsonString());
+        _processing = false;
 
+        if (executeRespones?.ResponseData?.Columns is null || executeRespones.ErrorException is not null || !executeRespones.SuccessAction)
+        {
+            toast.ShowError(executeRespones?.ErrorException?.ErrorMessage ?? "Cannot connect to server");
+            return;
+        }
 
+        hasResult = true;
+        selectedTab = "TabTwo";
 
+        StateHasChanged();
     }
 
 
