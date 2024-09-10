@@ -24,6 +24,8 @@ public partial class Login
     {
         _processing = true;
         var fetchData = await http.HttpClientReceiveAsync<CheckCredentialResponse>(HttpMethod.Post, "SQLFunctions/CheckDBConnection", _loginModel.ToJsonString());
+        _processing = false;
+
         if (fetchData is null || !fetchData.SuccessAction || !fetchData.ResponseData)
         {
             toast.ShowError(fetchData?.ErrorException?.ErrorMessage ?? "Cannot connect to server");
@@ -31,7 +33,6 @@ public partial class Login
         }
 
         await ((CustomAuthentication)_authenticationStateProvider).MarkUserAsAuthenticated(_loginModel);
-        _processing = false;
         toast.ShowSuccess("User access to use db");
         messageService.Clear();
         navigate.NavigateTo("/");

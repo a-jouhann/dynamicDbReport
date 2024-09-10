@@ -93,7 +93,11 @@ internal class DB_MSSQL : IPublicDBFunctions
     public ExecuteScriptResponse ExecuteScript(ExecuteScriptRequest requestModel)
     {
         using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(requestModel.Credential), Engine = DTO.Models.Public.EngineName.MSSQL });
-        return ExecuteDynamicQuery(db, requestModel.QueryToExecute);
+        var responseObject = ExecuteDynamicQuery(db, requestModel.QueryToExecute);
+        if (responseObject?.ResponseData?.Columns is not null && responseObject.ResponseData.Columns.Count > 0)
+            responseObject.ResponseData.ResponesMessage += $"{(requestModel.NoCount ? "" : $"({responseObject.ResponseData.Rows.Count} rows affected)" )} \r\n Completion time: {DateTime.Now:yyyy-MM-ddTHH:mm:ss.ffff}";
+
+        return responseObject;
     }
 
 }

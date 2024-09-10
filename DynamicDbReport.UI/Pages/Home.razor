@@ -2,6 +2,8 @@
 @using DynamicDbReport.DTO.Models.SQLModels
 @using DynamicDbReport.DTO.Shared
 @using DynamicDbReport.UI.PrivateServices
+@using OfficeOpenXml
+@using OfficeOpenXml.Style
 
 @attribute [Authorize]
 @inject IToastService toast
@@ -13,8 +15,8 @@
 <div style="width:100%">
     <FluentToolbar style="width:100%">
         <FluentButton Style="margin: 0 5px" Title="Open script"><FluentIcon Value="@(new Icons.Regular.Size20.OpenFolder())" Color="Color.Accent" Title="Open script" /></FluentButton>
-
         <FluentButton Style="margin: 0 5px" Title="Save As.."><FluentIcon Value="@(new Icons.Regular.Size20.Save())" Color="Color.Accent" Title="Save As.." /></FluentButton>
+        <FluentButton Style="margin: 0 5px" Title="Export result" OnClick="ExportToExcel"><FluentIcon Value="@(new Icons.Regular.Size20.DocumentSave())" Color="Color.Accent" Title="Export result" /></FluentButton>
 
         <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
 
@@ -39,22 +41,33 @@
         <FluentTabs ShowActiveIndicator=false ActiveTabId="@selectedTab">
 
             <FluentTab Id="TabTwo" Label="Results">
-                @if (hasResult)
+                @if (hasResult && executeRespones?.ResponseData?.Columns is not null && executeRespones.ResponseData.Columns.Count > 0)
                 {
-                    <FluentDataGrid Id="manualGrid" GenerateHeader=GenerateHeaderOption.None GridTemplateColumns="1fr 1fr" TGridItem="string" role="grid">
-                        <FluentDataGridRow RowType="DataGridRowType.Header">
-                            <FluentDataGridCell GridColumn=1 CellType="DataGridCellType.ColumnHeader">Column 1</FluentDataGridCell>
-                            <FluentDataGridCell GridColumn=2 CellType="DataGridCellType.ColumnHeader">Column 2</FluentDataGridCell>
-                        </FluentDataGridRow>
-                        <FluentDataGridRow>
-                            <FluentDataGridCell GridColumn=1>1.1</FluentDataGridCell>
-                            <FluentDataGridCell GridColumn=2>1.2</FluentDataGridCell>
-                        </FluentDataGridRow>
-                        <FluentDataGridRow>
-                            <FluentDataGridCell GridColumn=1>2.1</FluentDataGridCell>
-                            <FluentDataGridCell GridColumn=2> 2.2</FluentDataGridCell>
-                        </FluentDataGridRow>
-                    </FluentDataGrid>
+                    <table>
+                        <thead>
+                            <tr>
+                                @foreach (var j in executeRespones.ResponseData.Columns)
+                                {
+                                    <td>@j.ColumnName (@j.ColumnType)</td>
+                                }
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @if (executeRespones?.ResponseData?.Rows is not null && executeRespones.ResponseData.Rows.Count > 0)
+                            {
+                                @foreach (var j in executeRespones.ResponseData.Rows)
+                                {
+                                    <tr>
+                                        @foreach (var k in j)
+                                        {
+                                            <td>@k</td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
 
                 }
             </FluentTab>
@@ -73,6 +86,7 @@
 @code {
 
     [Inject] private HttpClientHelper http { get; set; }
+    [Inject] private IJSRuntime _js { get; set; }
 
     bool showAsGrid = true;
     bool hasResult = false;
@@ -123,7 +137,42 @@
         StateHasChanged();
     }
 
+    private async Task ExportToExcel()
+    {
+        if (executeRespones?.ResponseData?.Columns is null || executeRespones.ResponseData.Columns.Count == 0 || executeRespones?.ResponseData?.Rows is null || executeRespones.ResponseData.Rows.Count == 0)
+        {
+            toast.ShowError("No data to show");
+            return;
+        }
 
+        byte[] excellBytes;
+        var stream = new MemoryStream();
+        using (var package = new ExcelPackage(stream))
+        {
+            var workSheet = package.Workbook.Worksheets.Add("DD_R_1");
+            workSheet.Row(1).Height = 20;
+            workSheet.Row(1).Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            workSheet.Row(1).Style.Font.Bold = true;
+
+            for (int i = 0; i < executeRespones.ResponseData.Columns.Count; i++)
+            {
+                workSheet.Cells[1, i + 1].Value = executeRespones.ResponseData.Columns[i].ColumnName;
+            }
+
+            for (int row = 0; row < executeRespones.ResponseData.Rows.Count; row++)
+            {
+                for (int i = 0; i < executeRespones.ResponseData.Rows[row].Count; i++)
+                {
+                    workSheet.Cells[row + 2, i + 1].Value = executeRespones.ResponseData.Rows[row][i];
+                }
+            }
+
+            package.Save();
+            excellBytes = package.GetAsByteArray();
+        }
+
+        await _js.InvokeVoidAsync("downloadFileFromStream2", $"DataExport-{DateTime.Now:yyyyMMddHHmmssfff}.xlsx", Convert.ToBase64String(excellBytes));
+    }
 
 
 }
