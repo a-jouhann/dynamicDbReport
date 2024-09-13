@@ -1,15 +1,15 @@
 ﻿using DynamicDbReport.DTO.Models.SQLModels;
 using DynamicDbReport.Services.DBContext;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using System.Data;
 
 namespace DynamicDbReport.Services.Providers;
 
-internal class DB_MSSQL : IPublicDBFunctions
+internal class DB_POSTGRESQL : IPublicDBFunctions
 {
 
-    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress}{(requestModel.DBPort == "1433" ? "" : $", {requestModel.DBPort}")};{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == "" ? "" : $"Database={requestModel.DbName};")}User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
+    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress};Port={requestModel.DBPort};{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == "" ? "" : $"Database={requestModel.DbName};")}User Id={requestModel.Username};Password={requestModel.Password};";
 
     public CheckCredentialResponse CheckDBConnection(CredentialRequest credential)
     {
@@ -18,7 +18,7 @@ internal class DB_MSSQL : IPublicDBFunctions
 
         try
         {
-            using SqlConnection connection = new(connectionString);
+            using NpgsqlConnection connection = new(connectionString);
             connection.Open();
             return new() { SuccessAction = true, ResponseData = true };
         }
@@ -34,15 +34,15 @@ internal class DB_MSSQL : IPublicDBFunctions
         string connectionString = CreateConnectionString(requestModel);
         try
         {
-            using SqlConnection connection = new(connectionString);
+            using NpgsqlConnection connection = new(connectionString);
             connection.Open();
 
             List<string> dbs = [];
-            using (SqlCommand command = new("SELECT name FROM sys.databases", connection))
+            using (NpgsqlCommand command = new("SELECT datname FROM pg_database WHERE datistemplate = false", connection))
             {
-                using SqlDataReader reader = command.ExecuteReader();
+                using var reader = command.ExecuteReader();
                 while (reader.Read())
-                    dbs.Add(reader["name"].ToString());
+                    dbs.Add(reader.GetString(0));
             }
             return new() { SuccessAction = true, ResponseData = dbs };
         }
@@ -98,5 +98,4 @@ internal class DB_MSSQL : IPublicDBFunctions
 
         return responseObject;
     }
-
 }

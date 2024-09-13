@@ -4,5 +4,8 @@
 public enum EngineName
 {
     None = 0,
-    MSSQL
+    MSSQL,
+    POSTGRESQL,
+    MYSQL,
+    MARIADB
 }

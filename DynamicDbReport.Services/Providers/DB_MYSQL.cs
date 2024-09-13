@@ -1,15 +1,14 @@
 ﻿using DynamicDbReport.DTO.Models.SQLModels;
 using DynamicDbReport.Services.DBContext;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using MySql.Data.MySqlClient;
 using System.Data;
 
 namespace DynamicDbReport.Services.Providers;
 
-internal class DB_MSSQL : IPublicDBFunctions
+internal class DB_MYSQL : IPublicDBFunctions
 {
-
-    private string CreateConnectionString(CredentialRequest requestModel) => $"Server={requestModel.ServerAddress}{(requestModel.DBPort == "1433" ? "" : $", {requestModel.DBPort}")};{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == "" ? "" : $"Database={requestModel.DbName};")}User Id={requestModel.Username};Password={requestModel.Password};TrustServerCertificate=True;";
+    private string CreateConnectionString(CredentialRequest requestModel) => $"server={requestModel.ServerAddress};port={requestModel.DBPort};{(string.IsNullOrEmpty(requestModel.DbName) || requestModel.DbName == "" ? "" : $"database={requestModel.DbName};")}uid={requestModel.Username};pwd={requestModel.Password};";
 
     public CheckCredentialResponse CheckDBConnection(CredentialRequest credential)
     {
@@ -18,7 +17,7 @@ internal class DB_MSSQL : IPublicDBFunctions
 
         try
         {
-            using SqlConnection connection = new(connectionString);
+            using MySqlConnection connection = new(connectionString);
             connection.Open();
             return new() { SuccessAction = true, ResponseData = true };
         }
@@ -32,19 +31,21 @@ internal class DB_MSSQL : IPublicDBFunctions
     {
         requestModel.DbName = string.Empty;
         string connectionString = CreateConnectionString(requestModel);
+
         try
         {
-            using SqlConnection connection = new(connectionString);
+            using MySqlConnection connection = new(connectionString);
             connection.Open();
+            MySqlCommand cmd = new("SHOW DATABASES", connection);
+            MySqlDataReader reader = cmd.ExecuteReader();
 
-            List<string> dbs = [];
-            using (SqlCommand command = new("SELECT name FROM sys.databases", connection))
+            List<string> DBs = [];
+            while (reader.Read())
             {
-                using SqlDataReader reader = command.ExecuteReader();
-                while (reader.Read())
-                    dbs.Add(reader["name"].ToString());
+                DBs.Add(reader[0].ToString());
             }
-            return new() { SuccessAction = true, ResponseData = dbs };
+
+            return new() { SuccessAction = true, ResponseData = DBs };
         }
         catch (Exception e)
         {
@@ -91,12 +92,11 @@ internal class DB_MSSQL : IPublicDBFunctions
 
     public ExecuteScriptResponse ExecuteScript(ExecuteScriptRequest requestModel)
     {
-        using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(requestModel.Credential), Engine = requestModel.Credential.Engine });
+        using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(requestModel.Credential), Engine = requestModel.Credential.Engine, DBVersion = requestModel.Credential.DBVersion });
         var responseObject = ExecuteDynamicQuery(db, requestModel.QueryToExecute);
         if (responseObject?.ResponseData?.Columns is not null && responseObject.ResponseData.Columns.Count > 0)
             responseObject.ResponseData.ResponesMessage += $"{(requestModel.NoCount ? "" : $"({responseObject.ResponseData.Rows.Count} rows affected)")} \r\n Completion time: {DateTime.Now:yyyy-MM-ddTHH:mm:ss.ffff}";
 
         return responseObject;
     }
-
 }

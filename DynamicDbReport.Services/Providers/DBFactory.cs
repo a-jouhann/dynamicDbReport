@@ -9,7 +9,8 @@ internal class DBFactory
         engineName switch
         {
             EngineName.MSSQL => new DB_MSSQL(),
-
+            EngineName.POSTGRESQL => new DB_POSTGRESQL(),
+            EngineName.MYSQL or EngineName.MARIADB => new DB_MYSQL(),
 
             _ => throw new NotImplementedException()
         };

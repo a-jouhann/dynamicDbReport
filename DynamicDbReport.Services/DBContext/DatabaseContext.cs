@@ -1,6 +1,7 @@
 ﻿using DynamicDbReport.DTO.Models.DBContext;
 using DynamicDbReport.DTO.Models.Public;
 using Microsoft.EntityFrameworkCore;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace DynamicDbReport.Services.DBContext;
 
@@ -29,6 +30,18 @@ public class DatabaseContext : DbContext
         {
             case EngineName.MSSQL:
                 optionsBuilder.UseSqlServer(_connection.ConnectionString);
+                break;
+
+            case EngineName.POSTGRESQL:
+                optionsBuilder.UseNpgsql(_connection.ConnectionString, o => o.UseNodaTime());
+                break;
+
+            case EngineName.MYSQL:
+                optionsBuilder.UseMySQL(_connection.ConnectionString);
+                break;
+
+            case EngineName.MARIADB:
+                optionsBuilder.UseMySql(_connection.ConnectionString, new MySqlServerVersion(_connection.DBVersion ?? ""));
                 break;
 
 

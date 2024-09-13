@@ -15,10 +15,27 @@
                     <FluentValidationMessage For="@(() => _loginModel.Engine)" />
                 </div>
             </FluentGridItem>
+
+            @if (_loginModel.Engine == EngineName.MARIADB)
+            {
+                <FluentGridItem xs="12" sm="12" xl="12">
+                    <div class="card">
+                        <FluentTextField Class="full-width" Name="DB Version" @bind-Value="_loginModel.DBVersion" Label="DB Version" Id="DBVersion" />
+                        <FluentValidationMessage For="@(() => _loginModel.DBVersion)" />
+                    </div>
+                </FluentGridItem>
+            }
+
             <FluentGridItem xs="12" sm="12" xl="12">
                 <div class="card">
                     <FluentTextField Class="full-width" Name="Server Address" @bind-Value="_loginModel.ServerAddress" Label="Server Address" Id="ServerAddress" Required />
                     <FluentValidationMessage For="@(() => _loginModel.ServerAddress)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="12" sm="12" xl="12">
+                <div class="card">
+                    <FluentTextField Class="full-width" Name="Server Port" @bind-Value="_loginModel.DBPort" Label="DB Port" Id="DBPort" Required />
+                    <FluentValidationMessage For="@(() => _loginModel.DBPort)" />
                 </div>
             </FluentGridItem>
             <FluentGridItem xs="12" sm="12" xl="12">
