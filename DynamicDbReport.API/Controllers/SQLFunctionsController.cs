@@ -1,4 +1,5 @@
-﻿using DynamicDbReport.DTO.Models.SQLModels;
+﻿using DynamicDbReport.DTO.Models.Public;
+using DynamicDbReport.DTO.Models.SQLModels;
 using DynamicDbReport.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -25,17 +26,23 @@ public class SQLFunctionsController(DBService _db) : ControllerBase
     {
         return _db.CheckDBConnection(requestModel);
     }
-    
+
     [HttpPost("DBNameList")]
     public ActionResult<DatabaseNameListResponse> DBNameList(CredentialRequest requestModel)
     {
         return _db.DBNameList(requestModel);
     }
-    
+
     [HttpPost("ExecuteScript")]
     public ActionResult<ExecuteScriptResponse> ExecuteScript(ExecuteScriptRequest requestModel)
     {
         return _db.ExecuteScript(requestModel);
+    }
+
+    [HttpPost("ImportTable")]
+    public async Task<ActionResult<PublicActionResponse>> ImportTable(ImportTableRequest requestModel)
+    {
+        return await _db.ImportTable(requestModel);
     }
 
 

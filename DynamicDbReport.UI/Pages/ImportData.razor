@@ -1,3 +1,73 @@
 ﻿@page "/importdata"
+@attribute [Authorize]
+<PageTitle>@App.ApplicationTitle("Import data")</PageTitle>
 
-<h3>ImportData</h3>
+
+<h3>Import data by file</h3>
+
+<FluentInputFile AnchorId="uploadfile"
+                 @ref="@myFileByStream"
+                 DragDropZoneVisible="false"
+                 Mode="InputFileMode.Stream"
+                 Multiple="false"
+                 MaximumFileSize="@(200 * 1024 * 1024)"
+                 Accept=".xlsx"
+                 OnFileUploaded="@OnFileUploadedAsync"
+                 OnCompleted="@OnCompleted" />
+
+<FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)" />
+<FluentLabel Alignment="HorizontalAlignment.Center" Style="@((uploadComplete ? "display:none !important":""))">
+    @progressTitle
+</FluentLabel>
+
+<FluentButton Appearance="Appearance.Accent" Id="uploadfile">
+    Upload files
+</FluentButton>
+<p>@fileName</p>
+
+<hr />
+
+<FluentButton Appearance="Appearance.Accent">
+    Import with current settings
+</FluentButton>
+<FluentTextField @bind-Value="@tableName" />
+
+
+<hr />
+
+@if (fileColumns is not null && fileColumns.Count > 0)
+{
+    <table width="100%">
+        <thead>
+            <tr>
+                @foreach (var j in fileColumns)
+                {
+                    <td>@j.ColumnName</td>
+                }
+            </tr>
+            <tr>
+                @foreach (var j in fileColumns)
+                {
+                    <td>@j.ColumnType (@j.Length)</td>
+                }
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (fileRows is not null && fileRows.Count > 0)
+            {
+                @foreach (var j in fileRows)
+                {
+                    <tr>
+                        @for (int c = 0; c < j.Count; c++)
+                        {
+                            if (fileColumns[c].Length < j[c].Length) fileColumns[c].Length = j[c].Length;
+                            <td>@j[c]</td>
+                        }
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+
+}

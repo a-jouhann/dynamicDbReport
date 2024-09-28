@@ -1,15 +1,13 @@
-﻿using DynamicDbReport.DTO.Models.SQLModels;
+﻿using Blazored.LocalStorage;
+using DynamicDbReport.DTO.Models.SQLModels;
+using DynamicDbReport.DTO.Shared;
 using DynamicDbReport.UI.PrivateServices;
 using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
-using OfficeOpenXml.Style;
-using OfficeOpenXml;
-using DynamicDbReport.DTO.Shared;
-using System.Text;
-using Blazored.LocalStorage;
 using Microsoft.FluentUI.AspNetCore.Components;
-using System.IO;
-using System.IO.Pipelines;
+using Microsoft.JSInterop;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Text;
 
 namespace DynamicDbReport.UI.Pages;
 

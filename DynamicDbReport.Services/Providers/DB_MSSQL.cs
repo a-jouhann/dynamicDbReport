@@ -1,4 +1,5 @@
-﻿using DynamicDbReport.DTO.Models.SQLModels;
+﻿using DynamicDbReport.DTO.Models.Public;
+using DynamicDbReport.DTO.Models.SQLModels;
 using DynamicDbReport.Services.DBContext;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -52,51 +53,40 @@ internal class DB_MSSQL : IPublicDBFunctions
         }
     }
 
-    private ExecuteScriptResponse ExecuteDynamicQuery(DatabaseContext db, string sqlQuery)
-    {
-        try
-        {
-            var connection = db.Database.GetDbConnection();
-            using var command = connection.CreateCommand();
-            command.CommandText = sqlQuery;
-            if (connection.State == ConnectionState.Closed)
-                connection.Open();
-
-            using var result = command.ExecuteReader();
-            var dataTable = new DataTable();
-            dataTable.Load(result);
-            ExecuteScriptResponse responseObject = new() { ResponseData = new() { Columns = [], Rows = [] }, SuccessAction = true };
-
-            foreach (DataColumn column in dataTable.Columns)
-                responseObject.ResponseData.Columns.Add(new() { ColumnName = column.ColumnName, ColumnType = column.DataType.Name, Length = column.MaxLength });
-
-
-            foreach (DataRow row in dataTable.Rows)
-            {
-                List<string> currentItems = [];
-                foreach (DataColumn column in dataTable.Columns)
-                    currentItems.Add(row[column].ToString());
-
-                responseObject.ResponseData.Rows.Add(currentItems);
-            }
-
-            //message
-            return responseObject;
-        }
-        catch (Exception x)
-        {
-            return new() { ResponseData = new() { ResponesMessage = x.Message }, ErrorException = new() { ErrorMessage = x.Message } };
-        }
-    }
 
     public ExecuteScriptResponse ExecuteScript(ExecuteScriptRequest requestModel)
     {
         using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(requestModel.Credential), Engine = requestModel.Credential.Engine });
-        var responseObject = ExecuteDynamicQuery(db, requestModel.QueryToExecute);
+        var responseObject = SharedFunctions.ExecuteDynamicQuery(db, requestModel.QueryToExecute);
         if (responseObject?.ResponseData?.Columns is not null && responseObject.ResponseData.Columns.Count > 0)
             responseObject.ResponseData.ResponesMessage += $"{(requestModel.NoCount ? "" : $"({responseObject.ResponseData.Rows.Count} rows affected)")} \r\n Completion time: {DateTime.Now:yyyy-MM-ddTHH:mm:ss.ffff}";
 
         return responseObject;
     }
+
+
+    public async Task<PublicActionResponse> ImportTable(ImportTableRequest requestModel)
+    {
+        string connectionString = CreateConnectionString(requestModel.Credential);
+        try
+        {
+            using (SqlConnection connection = new(connectionString))
+            {
+                await connection.OpenAsync();
+                using (SqlBulkCopy bulkCopy = new(connection))
+                {
+                    bulkCopy.DestinationTableName = requestModel.TableName;
+                    await bulkCopy.WriteToServerAsync(requestModel.dataTable);
+                }
+            }
+        }
+        catch (Exception x)
+        {
+            return new() { ErrorException = new() { ErrorMessage = x.Message } };
+        }
+
+        return new() { SuccessAction = true };
+    }
+
 
 }

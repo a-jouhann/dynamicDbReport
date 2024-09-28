@@ -1,4 +1,5 @@
-﻿using DynamicDbReport.DTO.Models.SQLModels;
+﻿using DynamicDbReport.DTO.Models.Public;
+using DynamicDbReport.DTO.Models.SQLModels;
 using DynamicDbReport.Services.Providers;
 
 namespace DynamicDbReport.Services;
@@ -47,6 +48,19 @@ public class DBService
     }
 
 
+    public async Task<PublicActionResponse> ImportTable(ImportTableRequest requestModel)
+    {
+
+        try
+        {
+            var instance = DBFactory.CreateInstance(requestModel.Credential.Engine);
+            return await instance.ImportTable(requestModel);
+        }
+        catch (Exception x)
+        {
+            return new() { ErrorException = new() { ErrorMessage = $"{x.Message} - {x.InnerException?.Message}" } };
+        }
+    }
 
 
 
