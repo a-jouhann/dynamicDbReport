@@ -1,0 +1,82 @@
+﻿@page "/"
+@attribute [Authorize]
+<PageTitle>@App.ApplicationTitle("Home")</PageTitle>
+
+
+<div style="width:100%">
+    <FluentToolbar style="width:100%">
+
+        <FluentInputFile DragDropZoneVisible="false"
+                         Mode="InputFileMode.Stream"
+                         Multiple="false"
+                         AnchorId="uploaderBtn"
+                         MaximumFileSize="@(100 * 1024 * 1024)"
+                         Accept=".sql, .txt"
+                         OnFileUploaded="@UploadFiles" />
+
+
+        <FluentButton Style="margin: 0 5px" Title="Open script" Id="uploaderBtn"><FluentIcon Value="@(new Icons.Regular.Size20.OpenFolder())" Color="Color.Accent" Title="Open script" /></FluentButton>
+        <FluentButton Style="margin: 0 5px" Title="Save As.." OnClick="ExportQuery"><FluentIcon Value="@(new Icons.Regular.Size20.Save())" Color="Color.Accent" Title="Save As.." /></FluentButton>
+        <FluentButton Style="margin: 0 5px" Title="Export result" OnClick="ExportToExcel"><FluentIcon Value="@(new Icons.Regular.Size20.DocumentSave())" Color="Color.Accent" Title="Export result" /></FluentButton>
+
+        <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
+
+        <FluentButton Appearance="Appearance.Accent" IconEnd="@(new Icons.Regular.Size20.Send())" Disabled="_processing" OnClick="ExecuteScripts">@(_processing ? "Executing..." : "Execute")</FluentButton>
+        <FluentCheckbox @bind-Value="executeScript.NoCount" Label="No Count" />
+
+        <FluentDivider Style="height: 50px;" Role="DividerRole.Presentation" Orientation="Orientation.Vertical"></FluentDivider>
+
+        <FluentRadioGroup @bind-Value=showAsGrid TValue="bool">
+            <FluentRadio Value="true">Grid</FluentRadio>
+            <FluentRadio Value="false">Text</FluentRadio>
+        </FluentRadioGroup>
+    </FluentToolbar>
+</div>
+
+
+<FluentSplitter Orientation="@Orientation.Vertical" BarSize="6" Panel1MinSize="20%" Panel2MinSize="20%" Style="height:100%;width:100%;">
+    <Panel1>
+        <FluentTextArea Appearance="FluentInputAppearance.Filled" Rows="25" @bind-Value=executeScript.QueryToExecute style="width: 100%;max-height:100%;min-height:100%;"></FluentTextArea>
+    </Panel1>
+    <Panel2>
+        <FluentTabs ShowActiveIndicator=false ActiveTabId="@selectedTab">
+
+            <FluentTab Id="TabTwo" Label="Results">
+                @if (hasResult && executeRespones?.ResponseData?.Columns is not null && executeRespones.ResponseData.Columns.Count > 0)
+                {
+                    <table>
+                        <thead>
+                            <tr>
+                                @foreach (var j in executeRespones.ResponseData.Columns)
+                                {
+                                    <td>@j.ColumnName (@j.ColumnType)</td>
+                                }
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @if (executeRespones?.ResponseData?.Rows is not null && executeRespones.ResponseData.Rows.Count > 0)
+                            {
+                                @foreach (var j in executeRespones.ResponseData.Rows)
+                                {
+                                    <tr>
+                                        @foreach (var k in j)
+                                        {
+                                            <td>@k</td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+
+                }
+            </FluentTab>
+
+
+            <FluentTab Id="TabOne" Label="Messages">
+                @executeRespones.ResponseData.ResponesMessage
+            </FluentTab>
+        </FluentTabs>
+    </Panel2>
+</FluentSplitter>
