@@ -27,7 +27,7 @@
 
 <hr />
 
-<FluentButton Appearance="Appearance.Accent">
+<FluentButton Appearance="Appearance.Accent" OnClick="ImportTable">
     Import with current settings
 </FluentButton>
 <FluentTextField @bind-Value="@tableName" />
@@ -61,8 +61,8 @@
                     <tr>
                         @for (int c = 0; c < j.Count; c++)
                         {
-                            if (fileColumns[c].Length < j[c].Length) fileColumns[c].Length = j[c].Length;
-                            <td>@j[c]</td>
+                            if (fileColumns[c].Length < j[c].ItemValue.Length) fileColumns[c].Length = j[c].ItemValue.Length;
+                            <td>@j[c].ItemValue</td>
                         }
                     </tr>
                 }

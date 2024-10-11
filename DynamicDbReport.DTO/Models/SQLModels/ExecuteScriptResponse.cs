@@ -8,14 +8,8 @@ public class ExecuteScriptResponse : PublicActionResponse
     public class ExecuteDetail
     {
         public string ResponesMessage { get; set; }
-        public List<ColumnDetail> Columns { get; set; }
-        public List<List<string>> Rows { get; set; }
+        public List<ColumnDetails> Columns { get; set; }
+        public List<List<RowItemDetails>> Rows { get; set; }
     }
 
-    public class ColumnDetail
-    {
-        public string ColumnName { get; set; }
-        public string ColumnType { get; set; }
-        public int Length { get; set; }
-    }
 }

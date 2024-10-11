@@ -72,7 +72,7 @@ internal class DB_MYSQL : IPublicDBFunctions
                 await connection.OpenAsync();
                 MySqlConnector.MySqlBulkCopy bulkCopy = new(connection);
                 bulkCopy.DestinationTableName = requestModel.TableName;
-                await bulkCopy.WriteToServerAsync(requestModel.dataTable);
+                await bulkCopy.WriteToServerAsync(SharedFunctions.ConvertToDataTable(requestModel.Columns, requestModel.Rows));
             }
         }
         catch (Exception x)

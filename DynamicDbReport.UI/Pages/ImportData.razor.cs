@@ -24,10 +24,10 @@ public partial class ImportData
     string progressTitle;
     bool uploadComplete = false;
     string tableName = "";
-    private List<ExecuteScriptResponse.ColumnDetail> fileColumns = [];
-    private List<List<string>> fileRows = [];
+    List<ColumnDetails> fileColumns = [];
+    List<List<RowItemDetails>> fileRows = [];
 
-    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    private void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
     {
         progressPercent = myFileByStream!.ProgressPercent;
         progressTitle = myFileByStream!.ProgressTitle;
@@ -61,31 +61,32 @@ public partial class ImportData
         {
             var cell = worksheet.Cells[1, i];
             if (cell?.Value is null) continue;
-            fileColumns.Add(new() { ColumnName = cell.Text, ColumnType = "NVARCHAR", Length = 255 });
+            fileColumns.Add(new() { ColumnName = cell.Text, ColumnType = "NVARCHAR", Length = 255, NullableItem = false });
         }
 
         for (int r = 2; r <= worksheet.Dimension.End.Row; r++)
         {
-            List<string> currentRow = [];
+            List<RowItemDetails> currentRow = [];
             for (int c = 1; c <= maxColumns; c++)
             {
                 var cell = worksheet.Cells[r, c];
                 if (cell?.Value is null)
                 {
-                    currentRow.Add("NULL");
+                    currentRow.Add(new() { NullItem = true, ColumnIndex = (short)(c - 1), ItemValue = string.Empty });
                     continue;
                 }
-                currentRow.Add(cell.Text);
+                currentRow.Add(new() { NullItem = true, ColumnIndex = (short)(c - 1), ItemValue = cell.Text });
             }
             fileRows.Add(currentRow);
         }
 
         for (int c = 0; c < maxColumns; c++)
         {
-            var currentItemsMax = fileRows.Where(i => i.Count >= c).Select(i => i[c].Length).Max();
+            var currentItemsMax = fileRows.Where(i => i.Count >= c).Select(i => i[c].ItemValue.Length).Max();
             fileColumns[c].Length = currentItemsMax;
         }
 
+        uploadComplete = true;
         StateHasChanged();
     }
 
@@ -109,21 +110,9 @@ public partial class ImportData
             return;
         }
 
-        DataTable dt = new();
-        foreach (var j in fileColumns)
-            dt.Columns.Add(j.ColumnName);
-
-        foreach (var j in fileRows)
-        {
-            var newRow = dt.NewRow();
-            for (int i = 0; i < j.Count; i++)
-                newRow[i] = j;
-            dt.Rows.Add(newRow);
-        }
-
         var credential = await localStorage.GetItemAsync<CredentialRequest>("dbMember");
-        var executeRespones = await http.HttpClientReceiveAsync<PublicActionResponse>(HttpMethod.Post, "SQLFunctions/ImportTable", new ImportTableRequest { Credential = credential , dataTable = dt, TableName = tableName }.ToJsonString());
-        
+        var executeRespones = await http.HttpClientReceiveAsync<PublicActionResponse>(HttpMethod.Post, "SQLFunctions/ImportTable", new ImportTableRequest { Credential = credential, Columns = fileColumns, Rows = fileRows, TableName = tableName }.ToJsonString());
+
         if (executeRespones is null || executeRespones.ErrorException is not null || !executeRespones.SuccessAction)
         {
             toast.ShowError(executeRespones?.ErrorException?.ErrorMessage ?? "Cannot connect to server");

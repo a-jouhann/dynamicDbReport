@@ -4,6 +4,7 @@ using DynamicDbReport.Services.DBContext;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
+using System.Net;
 
 namespace DynamicDbReport.Services.Providers;
 
@@ -73,10 +74,12 @@ internal class DB_MSSQL : IPublicDBFunctions
             using (SqlConnection connection = new(connectionString))
             {
                 await connection.OpenAsync();
+               
+
                 using (SqlBulkCopy bulkCopy = new(connection))
                 {
                     bulkCopy.DestinationTableName = requestModel.TableName;
-                    await bulkCopy.WriteToServerAsync(requestModel.dataTable);
+                    await bulkCopy.WriteToServerAsync(SharedFunctions.ConvertToDataTable(requestModel.Columns,  requestModel.Rows));
                 }
             }
         }
