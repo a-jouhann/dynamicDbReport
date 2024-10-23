@@ -5,6 +5,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 using System.Net;
+using System.Net.NetworkInformation;
+using System.Text;
 
 namespace DynamicDbReport.Services.Providers;
 
@@ -66,20 +68,46 @@ internal class DB_MSSQL : IPublicDBFunctions
     }
 
 
+
+    public PublicActionResponse CreateTable(CreateTableRequest tableDetails)
+    {
+        StringBuilder st = new();
+        foreach (var j in tableDetails.Columns)
+        {
+            if (st.Length > 0) st.Append(", ");
+            st.Append($"{j.ColumnName} {j.ColumnType}{(j.Length > 0 ? $"({j.Length}{(j.Scale > 0 ? $",{j.Scale}" : "")})" : "")} {(j.Identity ? "IDENTITY(1,1)" : "")} {(j.NullableItem ? "NULL" : "NOT NULL")}");
+        }
+        string tableQuery = $"CREATE TABLE {tableDetails.TableName} ({st});";
+
+        if (tableDetails.ReCreateTable)
+            tableQuery = $"IF (NOT EXISTS (SELECT * FROM sys.tables WHERE name = '{tableDetails.TableName}')) DROP TABLE '{tableDetails.TableName}'; {tableQuery}";
+
+        using DatabaseContext db = new(new DTO.Models.DBContext.DBConnectionInject() { ConnectionString = CreateConnectionString(tableDetails.Credential), Engine = tableDetails.Credential.Engine });
+        var responseObject = SharedFunctions.ExecuteDynamicQuery(db, tableQuery);
+
+        return new() { ErrorException = responseObject.ErrorException, ResponseTime = responseObject.ResponseTime, SuccessAction = responseObject.SuccessAction };
+    }
+
+
     public async Task<PublicActionResponse> ImportTable(ImportTableRequest requestModel)
     {
         string connectionString = CreateConnectionString(requestModel.Credential);
+        var checkCreateTable = CreateTable(requestModel);
+        if (checkCreateTable is null || !checkCreateTable.SuccessAction || checkCreateTable.ErrorException is not null)
+            return checkCreateTable;
+
         try
         {
             using (SqlConnection connection = new(connectionString))
             {
                 await connection.OpenAsync();
-               
-
                 using (SqlBulkCopy bulkCopy = new(connection))
                 {
+
+
+
                     bulkCopy.DestinationTableName = requestModel.TableName;
-                    await bulkCopy.WriteToServerAsync(SharedFunctions.ConvertToDataTable(requestModel.Columns,  requestModel.Rows));
+                    await bulkCopy.WriteToServerAsync(SharedFunctions.ConvertToDataTable(requestModel.Columns, requestModel.Rows));
                 }
             }
         }

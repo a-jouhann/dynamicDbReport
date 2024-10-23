@@ -1,10 +1,6 @@
 ﻿namespace DynamicDbReport.DTO.Models.SQLModels;
 
-public class ImportTableRequest
+public class ImportTableRequest : CreateTableRequest
 {
-    public CredentialRequest Credential { get; set; }
-
-    public string TableName { get; set; }
-    public List<ColumnDetails> Columns { get; set; }
     public List<List<RowItemDetails>> Rows { get; set; }
 }

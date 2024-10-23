@@ -15,7 +15,7 @@ public partial class ImportData
     [Inject] private IToastService toast { get; set; }
     [Inject] private ILocalStorageService localStorage { get; set; }
 
-    private static readonly string[] SQLInjectItems = { "--", ";--", ";", "/*", "*", "#", "-", "*/", "@@", "@", "char", "nchar", "varchar", "nvarchar", "alter", "begin", "cast", "create", "cursor", "declare", "delete", "drop", "end", "exec", "execute", "fetch", "insert", "kill", "select", "sys", "sysobjects", "syscolumns", "table", "update", "dec", "proc" };
+    private static readonly string[] SQLInjectItems = { "--", ";--", ";", "/*", "*", "#", "-", "*/", "@@", "@" };
 
     string fileName = "";
 
@@ -61,7 +61,7 @@ public partial class ImportData
         {
             var cell = worksheet.Cells[1, i];
             if (cell?.Value is null) continue;
-            fileColumns.Add(new() { ColumnName = cell.Text, ColumnType = "NVARCHAR", Length = 255, NullableItem = false });
+            fileColumns.Add(new() { ColumnName = cell.Text.ClearColumnName(), ColumnType = "NVARCHAR", Length = 4000, NullableItem = false });
         }
 
         for (int r = 2; r <= worksheet.Dimension.End.Row; r++)
@@ -75,7 +75,7 @@ public partial class ImportData
                     currentRow.Add(new() { NullItem = true, ColumnIndex = (short)(c - 1), ItemValue = string.Empty });
                     continue;
                 }
-                currentRow.Add(new() { NullItem = true, ColumnIndex = (short)(c - 1), ItemValue = cell.Text });
+                currentRow.Add(new() { ColumnIndex = (short)(c - 1), ItemValue = cell.Text });
             }
             fileRows.Add(currentRow);
         }

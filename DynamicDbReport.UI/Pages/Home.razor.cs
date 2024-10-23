@@ -101,7 +101,7 @@ public partial class Home
             {
                 for (int i = 0; i < executeRespones.ResponseData.Rows[row].Count; i++)
                 {
-                    workSheet.Cells[row + 2, i + 1].Value = executeRespones.ResponseData.Rows[row][i];
+                    workSheet.Cells[row + 2, i + 1].Value = executeRespones.ResponseData.Rows[row][i].ItemValue;
                 }
             }
 

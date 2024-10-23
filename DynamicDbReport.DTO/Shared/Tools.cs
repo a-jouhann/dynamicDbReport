@@ -30,4 +30,6 @@ public static class Tools
         }
     }
 
+    public static string ClearColumnName(this string columnName) => columnName.Replace(" ", "").Replace("-", "").Replace("*", "").Replace("/", "").Replace("\\", "").Replace("@", "").Replace("!", "").Replace(">", "").Replace("<", "");
+
 }

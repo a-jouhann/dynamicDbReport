@@ -55,7 +55,7 @@ internal class SharedFunctions
         {
             var newRow = dt.NewRow();
             for (int i = 0; i < j.Count; i++)
-                newRow[i] = j;
+                newRow[i] = j[i].NullItem ? null : j[i].ItemValue;
             dt.Rows.Add(newRow);
         }
 
