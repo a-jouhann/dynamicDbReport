@@ -33,11 +33,44 @@
 <FluentTextField @bind-Value="@tableName" />
 
 
+@if (fileColumns is not null && fileColumns.Count > 0)
+{
+    <hr />
+    <h6>Table column edit</h6>
+    <table class="table table-hover table-striped">
+        <thead>
+            <tr>
+                <th>Key</th>
+                <th>Column name</th>
+                <th>Column Type</th>
+                <th colspan="2">Length</th>
+                <th>Allow null</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var j in fileColumns)
+            {
+                // if (fileColumns[c].Length < j[c].ItemValue.Length) fileColumns[c].Length = j[c].ItemValue.Length;
+                <tr>
+                    <td><FluentCheckbox @bind-Value="@j.Identity" /></td>
+                    <td><FluentTextField @bind-Value="@j.ColumnName" /> </td>
+                    <td><FluentTextField @bind-Value="@j.ColumnType" @key="@j.ID"/></td>
+                    <td colspan="2"><FluentNumberField TValue="int" Value="@j.Length" ValueChanged="@((e)=> j.Length = e)"></FluentNumberField></td>
+                    <td><FluentCheckbox @bind-Value="@j.NullableItem" /></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+
+
+}
+
 <hr />
 
 @if (fileColumns is not null && fileColumns.Count > 0)
 {
-    <table width="100%">
+    <table class="table table-hover table-striped">
         <thead>
             <tr>
                 @foreach (var j in fileColumns)
@@ -56,12 +89,11 @@
         <tbody>
             @if (fileRows is not null && fileRows.Count > 0)
             {
-                @foreach (var j in fileRows)
+                @foreach (var j in fileRows.Take(50))
                 {
                     <tr>
                         @for (int c = 0; c < j.Count; c++)
                         {
-                            if (fileColumns[c].Length < j[c].ItemValue.Length) fileColumns[c].Length = j[c].ItemValue.Length;
                             <td>@j[c].ItemValue</td>
                         }
                     </tr>
