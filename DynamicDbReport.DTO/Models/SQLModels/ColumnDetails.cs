@@ -8,5 +8,4 @@ public class ColumnDetails
     public int Length { get; set; } = 0;
     public byte Scale { get; set; } = 0;
     public bool NullableItem { get; set; } = true;
-    public Guid ID { get; set; } = new();
 }

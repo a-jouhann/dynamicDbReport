@@ -54,8 +54,8 @@
                 <tr>
                     <td><FluentCheckbox @bind-Value="@j.Identity" /></td>
                     <td><FluentTextField @bind-Value="@j.ColumnName" /> </td>
-                    <td><FluentTextField @bind-Value="@j.ColumnType" @key="@j.ID"/></td>
-                    <td colspan="2"><FluentNumberField TValue="int" Value="@j.Length" ValueChanged="@((e)=> j.Length = e)"></FluentNumberField></td>
+                    <td><FluentTextField @bind-Value="@j.ColumnType"/></td>
+                    <td colspan="2"><FluentNumberField @bind-Value="@j.Length"></FluentNumberField></td>
                     <td><FluentCheckbox @bind-Value="@j.NullableItem" /></td>
                 </tr>
             }
